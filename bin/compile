@@ -6,6 +6,14 @@ set -eo pipefail
 set -o errtrace
 set -o nounset
 
+
+
+# parse and derive params
+BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd)
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
 function topic() {
   echo "-----> $*"
 }
@@ -36,7 +44,7 @@ echo 'export PATH="$PATH:$HOME/vendor/bin"' >> $PROFILE_PATH
 echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/vendor/lib"' >> $PROFILE_PATH
 
 mkdir -p "$1/vendor"
-export BUILD_DIR=$1"/vendor"
+#export BUILD_DIR=$1"/vendor"
 export PATH="$BUILD_DIR/bin:"$PATH
 echo "-----> Building in $BUILD_DIR"
 
