@@ -70,6 +70,22 @@ make install >/dev/null 2>&1
 echo "Running make with target distclean" | indent
 make distclean > /dev/null 2>&1
 
+
+echo "-----> Starting fftw compilation"
+echo "Downloading http://www.fftw.org/fftw-3.3.10.tar.gz" | indent
+wget --quiet http://www.fftw.org/fftw-3.3.10.tar.gz
+echo "Unpacking fftw" | indent
+tar -xf fftw-3.3.10.tar.gz
+cd fftw-3.3.10
+echo "Running configure" | indent
+./configure --prefix="$BUILD_DIR" >/dev/null 2>&1
+echo "Running make with target install" | indent
+make install >/dev/null 2>&1
+echo "Running make with target distclean" | indent
+make distclean > /dev/null 2>&1
+
+
+
 echo "-----> Caching build."
 mkdir -p $2
 cp -R "$BUILD_DIR/" $2
