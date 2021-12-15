@@ -6,8 +6,26 @@ set -eo pipefail
 set -o errtrace
 set -o nounset
 
+function topic() {
+  echo "-----> $*"
+}
 
+function error() {
+  echo " !     $*" >&2
+  exit 1
+}
 
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+function read_var() {
+  echo $(head -n 1 $1)
+}
 
 PROFILE_PATH="$1/.profile.d/libsndfile.sh"
 
