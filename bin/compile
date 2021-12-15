@@ -6,6 +6,54 @@ set -eo pipefail
 set -o errtrace
 set -o nounset
 
+
+
+
+PROFILE_PATH="$1/.profile.d/libsndfile.sh"
+
+echo "exporting PATH and LIBRARY_PATH" | indent
+mkdir -p $(dirname $PROFILE_PATH)
+
+echo 'export PATH="$PATH:$HOME/vendor/bin"' >> $PROFILE_PATH
+echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/vendor/lib"' >> $PROFILE_PATH
+
+mkdir -p "$1/vendor"
+export BUILD_DIR=$1"/vendor"
+export PATH="$BUILD_DIR/bin:"$PATH
+echo "-----> Building in $BUILD_DIR"
+
+
+if [ -f "$2/vendor/bin/libsndfile" ]; then
+	echo "Using cached build." | indent
+	cp -R  "$2/vendor" $1
+	exit 0
+fi
+
+# begin lame
+
+echo "-----> Starting libsndfile compilation"
+echo "Downloading libsndfile-1.0.28.tar.gz" | indent
+wget --quiet https://s3-eu-west-1.amazonaws.com/soundtracktor-public/libsndfile-1.0.28.tar.gz
+echo "Unpacking libsndfile" | indent
+tar -xf libsndfile-1.0.28.tar.gz
+cd libsndfile-1.0.28
+echo "Running configure" | indent
+./configure --prefix="$BUILD_DIR" >/dev/null 2>&1
+echo "Running make with target install" | indent
+make install >/dev/null 2>&1
+echo "Running make with target distclean" | indent
+make distclean > /dev/null 2>&1
+
+echo "-----> Caching build."
+mkdir -p $2
+cp -R "$BUILD_DIR/" $2
+
+cd ..
+
+
+
+
+
 # parse and derive params
 BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd)
 BUILD_DIR=$1
@@ -58,58 +106,6 @@ if [ ! -z ${BUILDPACK_DEBUG+x} ] && [ "$BUILDPACK_DEBUG" == "1" ]; then
   uname --all | indent
   set | indent
 fi
-
-
-
-
-
-
-
-PROFILE_PATH="$1/.profile.d/libsndfile.sh"
-
-echo "exporting PATH and LIBRARY_PATH" | indent
-mkdir -p $(dirname $PROFILE_PATH)
-
-echo 'export PATH="$PATH:$HOME/vendor/bin"' >> $PROFILE_PATH
-echo 'export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/vendor/lib"' >> $PROFILE_PATH
-
-mkdir -p "$1/vendor"
-export BUILD_DIR=$1"/vendor"
-export PATH="$BUILD_DIR/bin:"$PATH
-echo "-----> Building in $BUILD_DIR"
-
-
-if [ -f "$2/vendor/bin/libsndfile" ]; then
-	echo "Using cached build." | indent
-	cp -R  "$2/vendor" $1
-	exit 0
-fi
-
-# begin lame
-
-echo "-----> Starting libsndfile compilation"
-echo "Downloading libsndfile-1.0.28.tar.gz" | indent
-wget --quiet https://s3-eu-west-1.amazonaws.com/soundtracktor-public/libsndfile-1.0.28.tar.gz
-echo "Unpacking libsndfile" | indent
-tar -xf libsndfile-1.0.28.tar.gz
-cd libsndfile-1.0.28
-echo "Running configure" | indent
-./configure --prefix="$BUILD_DIR" >/dev/null 2>&1
-echo "Running make with target install" | indent
-make install >/dev/null 2>&1
-echo "Running make with target distclean" | indent
-make distclean > /dev/null 2>&1
-
-echo "-----> Caching build."
-mkdir -p $2
-cp -R "$BUILD_DIR/" $2
-
-cd ..
-
-
-
-
-
 
 #----------------------------------------------------------------------
 
