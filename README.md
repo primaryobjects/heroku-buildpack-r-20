@@ -32,7 +32,7 @@ Additionally:
 
 See the [detect](bin/detect) script for the matching logic used.
 
-### Installing R Packages
+## Installing R Packages
 
 The `init.R` file is used to install R packages as required.
 
@@ -71,7 +71,7 @@ install.packages("PackageName-Version.tar.gz", repos=NULL, type="source")
 
 *NOTE:* The path to the package archive should be a relative path to the project root directory, so that it works locally in development and during deployment on Heroku.
 
-#### R Package Installation Helper
+### R Package Installation Helper
 
 For convenience, a R helper function, [`helpers.installPackages`](bin/helpers.R), is included by the buildpack to make installing packages easier.
 
@@ -81,7 +81,7 @@ Thus the `init.R` file can be reduced to a single line of R code as shown. Provi
 helpers.installPackages("package_name_1", "package_name_2", ...)
 ```
 
-### Installing Binary Dependencies
+## Installing Binary Dependencies
 
 This version of the buildpack still supports the use of an `Aptfile` for installing additional system packages, however this functionality is going to be _deprecated_ in future as it isn't a foolproof solution.
 
@@ -90,6 +90,29 @@ It is based on the same technique as used by the [heroku-buildpack-apt][bpapt] b
 There are various technical and security reasons why it is no longer recommended, so your mileage may vary.
 
 If any of your R packages dependend on system libraries which aren't [included by Heroku][herokupkgs], such as `libgmp`, `libgomp`, `libgdal`, `libgeos` and `libgsl`, you should use the Heroku [container stack][container-stack] together with [heroku-docker-r][heroku-docker-r] instead.
+
+### Manual Binary Dependencies
+
+To maually download, build, and install binary dependencies (Linunx apt-get libraries, etc.) you can modify [compile](https://github.com/primaryobjects/heroku-buildpack-r-20/blob/master/bin/compile#L74-L85) and provide the url to download the file for building.
+
+Copy the example script in the "compile" file to add any additional libraries to your Heroku enviornment.
+
+**Example**
+
+```bash
+echo "-----> Starting fftw compilation"
+echo "Downloading http://www.fftw.org/fftw-3.3.10.tar.gz" | indent
+wget --quiet http://www.fftw.org/fftw-3.3.10.tar.gz
+echo "Unpacking fftw" | indent
+tar -xf fftw-3.3.10.tar.gz
+cd fftw-3.3.10
+echo "Running configure" | indent
+./configure --prefix="$BUILD_DIR" >/dev/null 2>&1
+echo "Running make with target install" | indent
+make install >/dev/null 2>&1
+echo "Running make with target distclean" | indent
+make distclean > /dev/null 2>&1
+```
 
 ## R Applications
 
